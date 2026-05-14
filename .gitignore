@@ -1,0 +1,26 @@
+# Compiled binaries / objects
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.out
+*.exe
+a.out
+
+# Debug / build artifacts
+*.dSYM/
+*.gch
+*.pch
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build directories
+build/
+dist/
