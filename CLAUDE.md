@@ -109,4 +109,15 @@ claude
 
 ## .gitignore 요지
 
-C 컴파일 산출물(`*.o`, `*.a`, `*.so`, `*.out`, `*.exe`, `a.out`), 에디터/IDE 설정(`.vscode/`, `.idea/`, `*.swp`), 빌드 디렉터리(`build/`, `dist/`) 제외.
+C 컴파일 산출물(`*.o`, `*.a`, `*.so`, `*.out`, `*.exe`, `a.out`, 그리고 `code_practice/` 내 무확장 ELF 바이너리), 에디터/IDE 설정(`.vscode/`, `.idea/`, `*.swp`), 빌드 디렉터리(`build/`, `dist/`) 제외. `code_practice/`는 디렉터리 allowlist 패턴으로 소스(`*.c`, `*.h`, `Makefile`, `README*`, `.gitkeep`)만 트래킹.
+
+## 멀티 디바이스 sync 검증 기록
+
+### 2026-05-14 — Tailscale + Termius SSH 셋업 후 GitHub 왕복 sync 1회 검증
+
+| 항목 | 내용 |
+| --- | --- |
+| 환경 | 노트북 `book-j6lo4pcd9k` (WSL2 Ubuntu 24.04, `100.96.71.125`) ↔ 폰 `s22` (Galaxy S22, Termius via Tailscale `100.104.127.113`). 양쪽 모두 동일 GitHub 계정(`Sweet-Butters`) SSH 키로 origin 접근. |
+| 절차 | 1) 폰에서 `lecture_summaries/sync_test.md`에 `from phone <date>` 한 줄 commit → push. 2) 노트북에서 `git pull --ff-only` 후 내용 확인. 3) 노트북에서 `from laptop <date>` 한 줄 append → commit → push. 4) 폰에서 `git pull --ff-only` 후 두 줄 모두 확인. |
+| 결과 | 폰 → 노트북 ✓ (`f4474d8`). 노트북 → 폰 ✓ (`717c514`). 양방향 fast-forward, 충돌·인증 이슈 없음. |
+| 정리 | 본 절차의 임시 산출물(`lecture_summaries/sync_test.md`)은 검증 직후 제거 (해당 commit 함께). 이후 sync 의심 상황 시 동일 절차 반복. |
