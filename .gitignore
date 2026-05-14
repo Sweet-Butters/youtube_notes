@@ -24,3 +24,11 @@ a.out
 # Build directories
 build/
 dist/
+
+# code_practice/: 소스만 트래킹. ELF 바이너리(확장자 없음)까지 차단하려면 디렉터리 allowlist 패턴이 필요.
+code_practice/*
+!code_practice/*.c
+!code_practice/*.h
+!code_practice/Makefile
+!code_practice/README*
+!code_practice/.gitkeep
