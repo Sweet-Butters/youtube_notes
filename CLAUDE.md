@@ -1,42 +1,112 @@
 # youtube_notes
 
-Sweet-Butters의 유튜브 강의 학습 + C 실습 노트 repo. 노트북 WSL을 상시 가동해두고, 핸드폰이나 다른 기기에서 VS Code `code tunnel`로 원격 접속해 작업하는 워크플로의 단일 진실원(single source of truth).
+Sweet-Butters의 유튜브 강의 학습 + C 실습 노트. 노트북 WSL을 상시 가동해두고 핸드폰·태블릿·다른 PC에서 원격 접속해 작업하는 멀티 디바이스 개인 워크플로의 단일 진실원(single source of truth).
+
+## Quick Start (노트북)
+
+```bash
+cd ~/projects/youtube_notes
+git pull --ff-only            # 세션 시작
+# ... 작업 ...
+git add -p && git commit -m "..." && git push   # 세션 종료
+```
+
+C 예제 실행:
+
+```bash
+gcc code_practice/hello_yonsei.c -o code_practice/hello_yonsei
+./code_practice/hello_yonsei
+```
 
 ## 환경
 
-- **OS**: WSL2 Ubuntu 24.04 (Windows 11 노트북).
-- **WSL 위치**: 배포판은 `wsl --import`로 **`D:\WSL_Storage`** 에 옮겨져 있어 홈 디렉터리(`/home/sweetbutters/...`)가 물리적으로 D 드라이브 위에 있음. **`/mnt/d` 경로는 작업에 쓰지 않음** — 이미 D에 있으니 굳이 9P-mounted Windows FS로 갈 이유가 없고, C 컴파일 시 권한 문제 발생.
-- **프로젝트 경로**: `/home/sweetbutters/projects/youtube_notes/` (네이티브 ext4, D 드라이브 내부).
-- **원격 접속**: VS Code `code tunnel` — 핸드폰/태블릿/다른 데스크톱 어디에서든 노트북 셸·에디터에 붙어 작업.
-- **저장소**: GitHub (`git@github.com:Sweet-Butters/youtube_notes.git`, private). 기기 간 모든 sync는 여기를 거쳐서만.
-- **인증**: 각 기기마다 ed25519 SSH 키를 따로 만들어 GitHub에 등록. 노트북 키는 `~/.ssh/id_ed25519`.
+| 항목 | 값 |
+| --- | --- |
+| OS (노트북) | WSL2 Ubuntu 24.04 on Windows 11 |
+| WSL 위치 | `D:\WSL_Storage` (`wsl --import`로 이전) — 홈이 물리적으로 D 드라이브. **`/mnt/d` 작업 금지** (9P 마운트는 느리고 C 컴파일 권한 문제). |
+| 프로젝트 경로 | `/home/sweetbutters/projects/youtube_notes/` (native ext4) |
+| 원격 저장소 | `git@github.com:Sweet-Butters/youtube_notes.git` (public, `main` 추적) |
+| GitHub 인증 | ed25519 키 `~/.ssh/id_ed25519` (passphrase 없음, GitHub 등록 완료) |
 
 ## 작업 원칙
 
-1. **세션 시작 = `git pull --ff-only`** 부터. 다른 기기에서 만든 커밋을 먼저 받아오지 않으면 충돌·꼬임 확률이 올라감.
-2. **세션 종료 = `git add` → `git commit` → `git push`까지 완료**하고 떠남. 미완성 코드라도 WIP 커밋으로 푸시해서 다음 기기에서 이어받을 수 있게.
-3. **기기 간 직접 파일 복사 금지**. USB·클라우드 드라이브·메신저 전송 등으로 코드를 옮기지 않음. 모든 sync는 GitHub 경유.
-4. **자동 진행 vs 명시적 확인**:
-   - 일반 명령(파일 편집, 빌드, 통상 git 명령, 테스트 실행 등) → Claude가 사용자에게 따로 묻지 않고 즉시 진행.
-   - Destructive·되돌리기 힘든 명령(`git push --force`, `git reset --hard`, `rm -rf` 등 작업 내역 손실 가능성이 있는 것) → 반드시 사용자 확인 후 실행.
+1. **세션 시작 = `git pull --ff-only`** — 다른 기기 커밋 먼저 받기.
+2. **세션 종료 = `git add` → `commit` → `push`** — 미완성이라도 WIP 커밋으로.
+3. **기기 간 직접 파일 복사 금지** — sync는 오직 GitHub 경유.
+4. **Auto-Yes / 명시적 확인 구분**:
+   - 일반 명령(편집, 빌드, 통상 git, 테스트) → Claude가 묻지 않고 즉시 실행.
+   - Destructive (`git push --force`, `git reset --hard`, `rm -rf` 등) → 반드시 사용자 확인.
 
-## Claude Code 사용 시 참고
+## 원격 접속 (폰 ↔ 노트북)
 
-- 모바일에서 접속하는 경우가 많으니 응답은 짧고 가독성 우선. 긴 로그는 요약해서 전달.
-- 경로 기준은 `/home/sweetbutters/...`. 절대 경로를 우선 사용 (Bash 도구는 호출 사이에 cwd가 유지되지 않음).
-- 사용자 권한 모드는 `bypassPermissions`가 기본 (`~/.claude/settings.json`). Shift+Tab으로 다른 모드(default / acceptEdits / plan / bypassPermissions)로 토글 가능.
+두 경로가 동시 운영. 목적에 따라 선택.
 
-## 새 기기에서 처음 이 repo를 열 때
+### A. VS Code Tunnel — 코드 시각 편집 / 파일 트리 검토
 
-본 repo 외부의 환경 셋업이 먼저 필요:
-1. WSL2 + Ubuntu 설치 (선택: `wsl --import`로 비-C 드라이브로 이전)
-2. `git`, `gh`(GitHub CLI), `jq` 설치 — `sudo apt install -y git gh jq`
-3. ed25519 SSH 키 생성 후 GitHub `settings/keys`에 등록
+- 노트북 측 데몬: systemd user service `vscode-tunnel.service` (`~/.config/systemd/user/`).
+- `loginctl enable-linger sweetbutters` 적용 → WSL 부팅 시 자동 기동, 크래시 시 5초 후 재시작.
+- 접속 URL: `https://vscode.dev/tunnel/sb-laptop/home/sweetbutters/projects/youtube_notes`
+- 한계: 모바일 화면에서 VS Code UI는 터치 조작이 답답함.
+
+운영 명령:
+```bash
+systemctl --user status vscode-tunnel.service
+journalctl --user -u vscode-tunnel.service -f
+```
+
+### B. Termius SSH over Tailscale — 터미널 / Claude Code 중심 (모바일 권장)
+
+네트워크 (Tailscale mesh VPN, 외부망 어디서든 접속):
+
+| 기기 | tailnet hostname | tailnet IPv4 |
+| --- | --- | --- |
+| 노트북 | `book-j6lo4pcd9k` | `100.96.71.125` |
+| 폰 (Galaxy S22) | `s22` | `100.104.127.113` |
+
+노트북 셋업:
+- `openssh-server` 설치, `ssh.service` 활성 (`systemctl is-active ssh` → `active`).
+- `~/.ssh/authorized_keys`에 Termius가 폰에서 생성한 ED25519 공개키 등록.
+
+폰 셋업:
+- Tailscale 앱 (Play Store) — 노트북과 **동일 계정** 로그인.
+- Termius (Play Store) — Host: `100.96.71.125`, Port: `22`, User: `sweetbutters`, Auth: SSH Key.
+
+권장 진입 시퀀스 — `tmux`로 연결 끊김 내성 확보:
+```bash
+tmux new -s work          # 최초 세션
+tmux attach -t work       # 재접속 시
+cd ~/projects/youtube_notes
+claude
+```
+
+## 새 기기에서 이 repo 처음 열 때
+
+기본(코드 작업만):
+1. WSL2 + Ubuntu 24.04 (선택: `wsl --import`로 비-C 드라이브 이전)
+2. `sudo apt install -y git gh jq build-essential tmux`
+3. ed25519 SSH 키 생성 → GitHub `settings/keys` 등록
 4. `gh auth login --hostname github.com --git-protocol ssh --web`
 5. `git clone git@github.com:Sweet-Butters/youtube_notes.git`
 
+원격 접속 추가 (선택):
+
+6. **VS Code Tunnel**: standalone CLI 다운(`curl -sL https://update.code.visualstudio.com/latest/cli-linux-x64/stable | tar -xz -C ~/.local/bin/` → 원하면 `vscode`로 rename) 후 systemd user service로 등록.
+7. **SSH over Tailscale**: `sudo apt install -y openssh-server` → `sudo systemctl enable --now ssh` → `curl -fsSL https://tailscale.com/install.sh \| sudo sh` → `sudo tailscale up` → 폰 공개키를 `~/.ssh/authorized_keys`에 추가.
+
+## Claude Code 사용 시 참고
+
+- 폰 접속 비중이 크므로 응답은 짧게, 긴 로그는 요약.
+- 경로는 절대 경로 우선 — Bash 도구는 호출 간 cwd를 유지하지 않음.
+- 권한 모드: `bypassPermissions` 기본 (`~/.claude/settings.json`). Shift+Tab으로 토글.
+
 ## Repo 구조
 
-- `code_practice/` — 강의에서 따라 친 C 코드 실습 (`hw*.c`, 짧은 예제, 컴파일러 실험 등).
-- `lecture_summaries/` — 강의별 요약 노트 (Markdown).
-- `resources/` — 참고 자료, 링크 모음, 다이어그램, 외부 PDF 메모 등.
+| 디렉터리 | 용도 |
+| --- | --- |
+| `code_practice/` | 강의에서 따라 친 C 코드 (`hw*.c`, 짧은 예제, 컴파일러 실험) |
+| `lecture_summaries/` | 강의별 요약 노트 (Markdown) |
+| `resources/` | 참고 자료, 링크 모음, 다이어그램, 외부 PDF 메모 |
+
+## .gitignore 요지
+
+C 컴파일 산출물(`*.o`, `*.a`, `*.so`, `*.out`, `*.exe`, `a.out`), 에디터/IDE 설정(`.vscode/`, `.idea/`, `*.swp`), 빌드 디렉터리(`build/`, `dist/`) 제외.
